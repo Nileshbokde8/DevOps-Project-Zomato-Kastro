@@ -1,13 +1,26 @@
 pipeline {
     agent any
     tools {
-        jdk 'jdk21'
-        nodejs 'node25'
+        nodejs 'node20'
+        
     }
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
+        JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
     stages {
+
+        stage ("Verify JDK") {
+            steps {
+                sh 'echo "JAVA_HOME is set to: $JAVA_HOME"'
+                sh 'java --version'
+            }
+        }
+       
+
+
+
         stage ("clean workspace") {
             steps {
                 cleanWs()
@@ -64,17 +77,7 @@ pipeline {
                 }
             }
         }
-        stage('Docker Scout Image') {
-            steps {
-                script{
-                   withDockerRegistry(credentialsId: 'dockerhub-cred', toolName: 'docker'){
-                       sh 'docker-scout quickview nileshbokde/zomato:latest'
-                       sh 'docker-scout cves nileshbokde/zomato:latest'
-                       sh 'docker-scout recommendations nileshbokde/zomato:latest'
-                   }
-                }
-            }
-        }
+        
         stage ("Deploy to Container") {
             steps {
                 sh 'docker container run -d --name zomato -p 3000:3000 nileshbokde/zomato:latest'
