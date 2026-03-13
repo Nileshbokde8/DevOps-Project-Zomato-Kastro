@@ -1,5 +1,5 @@
 # Use Node.js 16 slim as the base image
-FROM node:20-slim
+FROM node:20-slim AS Builder
 
 # Set the working directory
 WORKDIR /app
@@ -13,8 +13,11 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the React app
-RUN npm run build
+FROM node:20-slim 
+
+WORKDIR /app
+
+COPY --from=Builder /app /app
 
 # Expose port 3000 (or the port your app is configured to listen on)
 EXPOSE 3000
